@@ -1,9 +1,0 @@
-{
-    "go.toolsEnvVars": {
-        "GO111MODULE": "on",
-        "GOOS": "linux",
-        "GOARCH": "arm",
-        "GOROOT": "/home/vscode/.cache/tinygo/goroot-efb714617b9620ad67dc78f1ab862eedf998813a8a7c6d39996a5346d3c316a7",
-        "GOFLAGS": "-tags=cortexm,baremetal,linux,arm,rp2040,rp,pico,tinygo,math_big_pure_go,gc.conservative,scheduler.tasks,serial.usb"
-    }
-}
