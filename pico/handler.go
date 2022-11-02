@@ -1,4 +1,7 @@
-package main
+//go:build pico
+// +build pico
+
+package pico
 
 import (
 	"fmt"
@@ -6,7 +9,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-	"tiny-e22/hal"
+
+	"github.com/mbalug7/go-ebyte-lora/pkg/hal"
 )
 
 const (
@@ -17,15 +21,15 @@ const (
 )
 
 type chipModeLineState struct {
-	m0Value int
-	m1Value int
+	m0State bool
+	m1State bool
 }
 
 var chipModes = map[hal.ChipMode]*chipModeLineState{
-	hal.ModeNormal:    {m0Value: 0, m1Value: 0},
-	hal.ModeWakeUp:    {m0Value: 1, m1Value: 0},
-	hal.ModePowerSave: {m0Value: 0, m1Value: 1},
-	hal.ModeSleep:     {m0Value: 1, m1Value: 1},
+	hal.ModeNormal:    {m0State: false, m1State: false},
+	hal.ModeWakeUp:    {m0State: true, m1State: false},
+	hal.ModePowerSave: {m0State: false, m1State: true},
+	hal.ModeSleep:     {m0State: true, m1State: true},
 }
 
 type serialPortData struct {
@@ -126,7 +130,6 @@ func (obj *HWHandler) onAuxPinRiseEvent() {
 	}
 	if currentAction == actionRead {
 		data, err := obj.ReadSerial()
-		println("DATA READ ON AUX %s", data)
 		if obj.onMsgCb != nil && len(data) > 0 {
 			obj.onMsgCb(data, err)
 		}
@@ -202,17 +205,9 @@ func (obj *HWHandler) SetMode(mode hal.ChipMode) error {
 
 	// set aux action to mode switch
 	obj.setAuxAction(actionModeSwitch)
+	obj.M0Line.Set(chipMode.m0State)
+	obj.M1Line.Set(chipMode.m1State)
 
-	if chipMode.m0Value == 1 {
-		obj.M0Line.High()
-	} else {
-		obj.M0Line.Low()
-	}
-	if chipMode.m1Value == 1 {
-		obj.M1Line.High()
-	} else {
-		obj.M1Line.Low()
-	}
 	// documentation says that the mode switching is not completed on raising edge. It needs 2 ms.
 	// waiting 200 just to be sure
 	time.Sleep(200 * time.Millisecond)
@@ -220,22 +215,10 @@ func (obj *HWHandler) SetMode(mode hal.ChipMode) error {
 }
 
 func (obj *HWHandler) GetMode() (hal.ChipMode, error) {
-	m0ValBool := obj.M0Line.Get()
-	m1ValBool := obj.M1Line.Get()
-
-	m0Val := 0
-	m1Val := 0
-	if m0ValBool {
-		m0Val = 1
-	}
-
-	if m1ValBool {
-		m1Val = 1
-	}
 
 	for mode, values := range chipModes {
 
-		if values.m0Value == m0Val && values.m1Value == m1Val {
+		if values.m0State == obj.M0Line.Get() && values.m1State == obj.M1Line.Get() {
 			return mode, nil
 		}
 	}

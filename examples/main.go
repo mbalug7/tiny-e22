@@ -6,8 +6,10 @@ import (
 	"machine"
 	"sync"
 	"time"
-	"tiny-e22/e22"
-	"tiny-e22/hal"
+
+	"github.com/mbalug7/go-ebyte-lora/pkg/e22"
+	"github.com/mbalug7/go-ebyte-lora/pkg/hal"
+	"github.com/mbalug7/tiny-e22/pico"
 )
 
 var mu sync.Mutex
@@ -27,7 +29,7 @@ func main() {
 	led.High()
 
 	fmt.Println("creating HW handler")
-	hw, err := NewHWHandler(machine.GP12, machine.GP13, machine.GP11, machine.UART1)
+	hw, err := pico.NewHWHandler(machine.GP12, machine.GP13, machine.GP11, machine.UART1)
 	if err != nil {
 		println("could not configure HWHandler:", err)
 
@@ -64,7 +66,7 @@ func main() {
 
 	for {
 		led.Low()
-		time.Sleep(time.Second * 60)
+		time.Sleep(time.Second * 10)
 		//fmt.Println("msg") // UART0
 
 		err = module.SendFixedMessage(0, 2, 23, "PING")
@@ -73,6 +75,10 @@ func main() {
 		}
 
 		led.High()
-		time.Sleep(time.Millisecond * 1000)
+		time.Sleep(time.Millisecond * 2000)
+		err = module.SendFixedMessage(0, 2, 23, "HEJ")
+		if err != nil {
+			fmt.Printf("failed to send: %s", err)
+		}
 	}
 }
