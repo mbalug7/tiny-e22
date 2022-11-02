@@ -1,3 +1,5 @@
 *.elf
 *.uf2
 .vscode
+examples/*.uf2
+examples/*.elf
