@@ -63,6 +63,8 @@ func NewHWHandler(M0Pin machine.Pin, M1Pin machine.Pin, AUXPin machine.Pin, uart
 			serialParityBitStaged: hal.ParityNone,
 		},
 		auxAction: actionPowerReset,
+		M0Line:    M0Pin,
+		M1Line:    M1Pin,
 	}
 	err := uart.Configure(machine.UARTConfig{
 		BaudRate: 9600,
