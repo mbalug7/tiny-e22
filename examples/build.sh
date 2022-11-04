@@ -1,0 +1,1 @@
+tinygo build -target=pico -o output.uf2
